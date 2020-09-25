@@ -13,7 +13,7 @@ type Host struct {
 	CheckCommand string   `json:"check_command,omitempty"`
 	Notes        string   `json:"notes"`
 	NotesURL     string   `json:"notes_url"`
-	CheckPeriod  string   `json:"check_period"`
+	CheckPeriod  string   `json:"check_period,omitempty"`
 	Vars         Vars     `json:"vars"`
 	Groups       []string `json:"groups,omitempty"`
 	Zone         string   `json:"zone,omitempty"`
