@@ -2,7 +2,6 @@ package icinga2
 
 import (
 	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"gopkg.in/jmcvetta/napping.v3"
 	"net/http"
@@ -41,10 +40,9 @@ type WebClient struct {
 	Username          string
 	Password          string
 	Debug             bool
-	InsecureTLS       bool
 	DisableKeepAlives bool
 	Zone              string
-	RootCAs           *x509.CertPool
+	TLSConfig         *tls.Config
 }
 
 type MockClient struct {
@@ -69,16 +67,10 @@ type Object interface {
 }
 
 func New(s WebClient) (*WebClient, error) {
-	rootCAs := s.RootCAs
-	if rootCAs == nil {
-		rootCAs, _ = x509.SystemCertPool()
-	}
 	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: s.InsecureTLS,
-			RootCAs:            rootCAs,
-		},
+		TLSClientConfig:   s.TLSConfig,
 		DisableKeepAlives: s.DisableKeepAlives,
+		ForceAttemptHTTP2: true,
 	}
 	client := &http.Client{Transport: transport}
 
