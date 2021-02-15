@@ -31,6 +31,7 @@ type ServiceResults struct {
 }
 
 type ServiceCreate struct {
+	Templates []string `json:"templates"`
 	Attrs Service `json:"attrs"`
 }
 
@@ -67,7 +68,7 @@ func (s *WebClient) GetService(name string) (Service, error) {
 }
 
 func (s *WebClient) CreateService(service Service) error {
-	serviceCreate := ServiceCreate{Attrs: service}
+	serviceCreate := ServiceCreate{Templates: []string{"generic-service"},Attrs: service}
 	// Strip "name" from create payload
 	serviceCreate.Attrs.Name = ""
 	err := s.CreateObject("/services/"+service.FullName(), serviceCreate)
