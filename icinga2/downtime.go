@@ -1,5 +1,7 @@
 package icinga2
 
+import "fmt"
+
 type Downtime struct {
 	Active    bool    `json:"active"`
 	Author    string  `json:"author"`
@@ -20,13 +22,16 @@ type DowntimeResults struct {
 	} `json:"results"`
 }
 
-func (s *WebClient) ListDowntimes(query string) (downtimes []Downtime, err error) {
+func (s *WebClient) ListDowntimes(query QueryFilter) (downtimes []Downtime, err error) {
 	var dtResults DowntimeResults
 	downtimes = []Downtime{}
 
-	_, err = s.napping.Get(s.URL+"/v1/objects/downtimes?"+query, nil, &dtResults, nil)
+	resp, err := s.FilteredQuery(s.URL+"/v1/objects/downtimes", query, &dtResults, nil)
 	if err != nil {
 		return
+	}
+	if resp.HttpResponse().StatusCode != 200 {
+		return []Downtime{}, fmt.Errorf("Did not get 200 OK")
 	}
 	for _, result := range dtResults.Results {
 		if result.Downtime.Type == "Downtime" {
@@ -39,7 +44,7 @@ func (s *WebClient) ListDowntimes(query string) (downtimes []Downtime, err error
 	return
 }
 
-func (s *MockClient) ListDowntimes(query string) ([]Downtime, error) {
+func (s *MockClient) ListDowntimes(query QueryFilter) ([]Downtime, error) {
 	// Readonly mocked ListDowntimes never returns a downtime
 	return []Downtime{}, nil
 }
