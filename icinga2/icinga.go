@@ -10,6 +10,10 @@ import (
 	"sync"
 )
 
+type QueryFilter struct {
+	Filter string
+}
+
 type Client interface {
 	GetHost(string) (Host, error)
 	CreateHost(Host) error
@@ -23,11 +27,11 @@ type Client interface {
 	DeleteHostGroup(string) error
 	UpdateHostGroup(HostGroup) error
 
-	ListDowntimes(string) ([]Downtime, error)
+	ListDowntimes(QueryFilter) ([]Downtime, error)
 
 	GetService(string) (Service, error)
 	CreateService(Service) error
-	ListServices(string) ([]Service, error)
+	ListServices(QueryFilter) ([]Service, error)
 	DeleteService(string) error
 	UpdateService(Service) error
 
@@ -118,6 +122,21 @@ func (s *WebClient) UpdateObject(path string, create interface{}) error {
 
 	resp, err := s.napping.Post(s.URL+"/v1/objects"+path, create, &results, &errmsg)
 	return s.handleResults("update", path, resp, &results, &errmsg, err)
+}
+
+func (s *WebClient) FilteredQuery(url string, filter QueryFilter, result, errmsg interface{}) (*napping.Response, error) {
+	header := http.Header{
+		"Accept": []string{"application/json"},
+	}
+	req := napping.Request{
+		Method:  "GET",
+		Url:     url,
+		Header:  &header,
+		Payload: filter,
+		Result:  result,
+		Error:   errmsg,
+	}
+	return s.napping.Send(&req)
 }
 
 func (s *WebClient) handleResults(typ, path string, resp *napping.Response, results, errmsg *Results, oerr error) error {

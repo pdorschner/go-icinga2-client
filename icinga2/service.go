@@ -32,7 +32,7 @@ type ServiceResults struct {
 
 type ServiceCreate struct {
 	Templates []string `json:"templates"`
-	Attrs Service `json:"attrs"`
+	Attrs     Service  `json:"attrs"`
 }
 
 func (s Service) GetCheckCommand() string {
@@ -68,20 +68,23 @@ func (s *WebClient) GetService(name string) (Service, error) {
 }
 
 func (s *WebClient) CreateService(service Service) error {
-	serviceCreate := ServiceCreate{Templates: []string{"generic-service"},Attrs: service}
+	serviceCreate := ServiceCreate{Templates: []string{"generic-service"}, Attrs: service}
 	// Strip "name" from create payload
 	serviceCreate.Attrs.Name = ""
 	err := s.CreateObject("/services/"+service.FullName(), serviceCreate)
 	return err
 }
 
-func (s *WebClient) ListServices(query string) (services []Service, err error) {
+func (s *WebClient) ListServices(query QueryFilter) (services []Service, err error) {
 	var serviceResults ServiceResults
 	services = []Service{}
 
-	_, err = s.napping.Get(s.URL+"/v1/objects/services?"+query, nil, &serviceResults, nil)
+	resp, err := s.FilteredQuery(s.URL+"/v1/objects/services", query, &serviceResults, nil)
 	if err != nil {
 		return
+	}
+	if resp.HttpResponse().StatusCode != 200 {
+		return []Service{}, fmt.Errorf("Did not get 200 OK")
 	}
 	for _, result := range serviceResults.Results {
 		if s.Zone == "" || s.Zone == result.Service.Zone {
@@ -121,7 +124,7 @@ func (s *MockClient) CreateService(service Service) error {
 	return nil
 }
 
-func (s *MockClient) ListServices(query string) ([]Service, error) {
+func (s *MockClient) ListServices(query QueryFilter) ([]Service, error) {
 	services := []Service{}
 
 	for _, x := range s.Services {
