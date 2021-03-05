@@ -31,7 +31,7 @@ type Client interface {
 
 	GetService(string) (Service, error)
 	CreateService(Service) error
-	ListServices(string) ([]Service, error)
+	ListServices(QueryFilter) ([]Service, error)
 	DeleteService(string) error
 	UpdateService(Service) error
 
