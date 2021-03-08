@@ -11,7 +11,7 @@ import (
 )
 
 type QueryFilter struct {
-	Filter string
+	Filter string `json:"filter"`
 }
 
 type Client interface {
