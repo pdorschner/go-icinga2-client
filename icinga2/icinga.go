@@ -76,6 +76,7 @@ func New(s WebClient) (*WebClient, error) {
 		TLSClientConfig:   s.TLSConfig,
 		DisableKeepAlives: s.DisableKeepAlives,
 		ForceAttemptHTTP2: true,
+		Proxy:             http.ProxyFromEnvironment,
 	}
 	client := &http.Client{Transport: transport}
 
