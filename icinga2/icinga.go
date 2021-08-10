@@ -3,11 +3,12 @@ package icinga2
 import (
 	"crypto/tls"
 	"fmt"
-	"gopkg.in/jmcvetta/napping.v3"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
+
+	"gopkg.in/jmcvetta/napping.v3"
 )
 
 type QueryFilter struct {
