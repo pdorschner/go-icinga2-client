@@ -3,11 +3,12 @@ package icinga2
 import (
 	"crypto/tls"
 	"fmt"
-	"gopkg.in/jmcvetta/napping.v3"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
+
+	"gopkg.in/jmcvetta/napping.v3"
 )
 
 type QueryFilter struct {
@@ -75,6 +76,7 @@ func New(s WebClient) (*WebClient, error) {
 		TLSClientConfig:   s.TLSConfig,
 		DisableKeepAlives: s.DisableKeepAlives,
 		ForceAttemptHTTP2: true,
+		Proxy:             http.ProxyFromEnvironment,
 	}
 	client := &http.Client{Transport: transport}
 
