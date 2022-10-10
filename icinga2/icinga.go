@@ -37,6 +37,9 @@ type Client interface {
 	UpdateService(Service) error
 
 	ProcessCheckResult(Service, Action) error
+	GetClientConfig() ClientConfig
+	TestIcingaApi() error
+	SetIcingaUrl(string)
 }
 
 type WebClient struct {
@@ -50,12 +53,39 @@ type WebClient struct {
 	TLSConfig         *tls.Config
 }
 
+type ClientConfig struct {
+	URL               string
+	Username          string
+	Password          string
+	Debug             bool
+	DisableKeepAlives bool
+	Zone              string
+	TLSConfig         *tls.Config
+}
+
+func (s *WebClient) GetClientConfig() ClientConfig {
+	return ClientConfig{
+		URL:               s.URL,
+		Username:          s.Username,
+		Password:          s.Password,
+		Debug:             s.Debug,
+		DisableKeepAlives: s.DisableKeepAlives,
+		Zone:              s.Zone,
+		TLSConfig:         s.TLSConfig,
+	}
+}
+
+func (s *MockClient) GetClientConfig() ClientConfig {
+	return ClientConfig{}
+}
+
 type MockClient struct {
 	Hostgroups map[string]HostGroup
 	Hosts      map[string]Host
 	Services   map[string]Service
 	Actions    map[string][]Action
 	mutex      sync.Mutex
+	URL        string
 }
 
 type Vars map[string]interface{}
@@ -139,6 +169,41 @@ func (s *WebClient) FilteredQuery(url string, filter QueryFilter, result, errmsg
 		Error:   errmsg,
 	}
 	return s.napping.Send(&req)
+}
+
+func (s *WebClient) SetIcingaUrl(url string) {
+	s.URL = url
+}
+
+func (s *MockClient) SetIcingaUrl(url string) {
+	s.URL = url
+}
+
+func (s *WebClient) TestIcingaApi() error {
+	var results, errmsg Results
+
+	resp, err := s.napping.Get(s.URL+"/v1", nil, &results, &errmsg)
+	if err != nil {
+		return err
+	}
+
+	if resp.HttpResponse().StatusCode != http.StatusOK {
+		return err
+	}
+
+	return nil
+}
+
+func (s *MockClient) TestIcingaApi() error {
+	parsedUrl, err := url.Parse(s.URL)
+	if err != nil {
+		return err
+	}
+
+	if parsedUrl.Host == "" {
+		return fmt.Errorf("URL without hostname not supported: %v", parsedUrl)
+	}
+	return nil
 }
 
 func (s *WebClient) handleResults(typ, path string, resp *napping.Response, results, errmsg *Results, oerr error) error {
