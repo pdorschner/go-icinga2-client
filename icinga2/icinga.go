@@ -35,6 +35,7 @@ type Client interface {
 	ListServices(QueryFilter) ([]Service, error)
 	DeleteService(string) error
 	UpdateService(Service) error
+	UpdateCustomVars(string, Vars) error
 
 	ProcessCheckResult(Service, Action) error
 	GetClientConfig() ClientConfig
@@ -86,6 +87,7 @@ type MockClient struct {
 	Actions    map[string][]Action
 	mutex      sync.Mutex
 	URL        string
+	Templates  []string
 }
 
 type Vars map[string]interface{}
@@ -128,6 +130,7 @@ func NewMockClient() (c *MockClient) {
 	c.Services = make(map[string]Service)
 	c.Actions = make(map[string][]Action)
 	c.mutex = sync.Mutex{}
+	c.Templates = []string{}
 	return
 }
 

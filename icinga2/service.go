@@ -3,25 +3,31 @@ package icinga2
 import (
 	"fmt"
 	"net/url"
+	"time"
 )
 
 type Service struct {
-	Name               string  `json:"name,omitempty"`
-	DisplayName        string  `json:"display_name"`
-	HostName           string  `json:"host_name"`
-	CheckCommand       string  `json:"check_command"`
-	EnableActiveChecks bool    `json:"enable_active_checks"`
-	Notes              string  `json:"notes"`
-	NotesURL           string  `json:"notes_url"`
-	ActionURL          string  `json:"action_url"`
-	Vars               Vars    `json:"vars"`
-	Zone               string  `json:"zone,omitempty"`
-	CheckInterval      float64 `json:"check_interval"`
-	RetryInterval      float64 `json:"retry_interval"`
-	MaxCheckAttempts   float64 `json:"max_check_attempts"`
-	CheckPeriod        string  `json:"check_period,omitempty"`
-	State              float64 `json:"state,omitempty"`
-	LastStateChange    float64 `json:"last_state_change,omitempty"`
+	Name               string        `json:"name,omitempty"`
+	DisplayName        string        `json:"display_name"`
+	HostName           string        `json:"host_name"`
+	CheckCommand       string        `json:"check_command"`
+	EnableActiveChecks bool          `json:"enable_active_checks"`
+	Notes              string        `json:"notes"`
+	NotesURL           string        `json:"notes_url"`
+	ActionURL          string        `json:"action_url"`
+	Zone               string        `json:"zone,omitempty"`
+	CheckInterval      float64       `json:"check_interval"`
+	RetryInterval      float64       `json:"retry_interval"`
+	MaxCheckAttempts   float64       `json:"max_check_attempts"`
+	CheckPeriod        string        `json:"check_period,omitempty"`
+	State              float64       `json:"state,omitempty"`
+	LastStateChange    float64       `json:"last_state_change,omitempty"`
+	DummyText          string        `json:"dummy_text,omitempty"`
+	DummyState         int           `json:"dummy_state,omitempty"`
+	LabelHeartbeat     bool          `json:"label_heartbeat,omitempty"`
+	BridgeUUID         string        `json:"vars.bridge_uuid"`
+	KeepFor            time.Duration `json:"vars.keep_for"`
+	Templates          []string      `json:"templates,omitempty"`
 }
 
 type ServiceResults struct {
@@ -39,9 +45,9 @@ func (s Service) GetCheckCommand() string {
 	return s.CheckCommand
 }
 
-func (s Service) GetVars() Vars {
-	return s.Vars
-}
+//func (s Service) GetVars() Vars {
+//	return s.Vars
+//}
 
 func (s Service) GetNotes() string {
 	return s.Notes
@@ -67,11 +73,21 @@ func (s *WebClient) GetService(name string) (Service, error) {
 	return serviceResults.Results[0].Service, nil
 }
 
+func (s *WebClient) UpdateCustomVars(serviceName string, customVars Vars) error {
+	vars := map[string]interface{}{}
+	vars["attrs"] = customVars
+
+	err := s.UpdateObject("/services/"+serviceName, vars)
+
+	return err
+}
+
 func (s *WebClient) CreateService(service Service) error {
-	serviceCreate := ServiceCreate{Templates: []string{"generic-service"}, Attrs: service}
+	serviceCreate := ServiceCreate{Templates: service.Templates, Attrs: service}
 	// Strip "name" from create payload
 	serviceCreate.Attrs.Name = ""
 	err := s.CreateObject("/services/"+service.FullName(), serviceCreate)
+
 	return err
 }
 
@@ -146,5 +162,12 @@ func (s *MockClient) UpdateService(service Service) error {
 	s.mutex.Lock()
 	s.Services[service.FullName()] = service
 	s.mutex.Unlock()
+	return nil
+}
+
+func (s *MockClient) UpdateCustomVars(serviceName string, customVars Vars) error {
+	s.mutex.Lock()
+	s.mutex.Unlock()
+
 	return nil
 }
