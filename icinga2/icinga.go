@@ -35,7 +35,6 @@ type Client interface {
 	ListServices(QueryFilter) ([]Service, error)
 	DeleteService(string) error
 	UpdateService(Service) error
-	UpdateCustomVars(string, Vars) error
 
 	ProcessCheckResult(Service, Action) error
 	GetClientConfig() ClientConfig
