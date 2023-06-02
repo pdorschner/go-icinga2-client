@@ -14,7 +14,7 @@ type Service struct {
 	Notes              string   `json:"notes"`
 	NotesURL           string   `json:"notes_url"`
 	ActionURL          string   `json:"action_url"`
-	Vars               Vars     `json:"-"`
+	Vars               Vars     `json:"vars,omitempty"`
 	Zone               string   `json:"zone,omitempty"`
 	CheckInterval      float64  `json:"check_interval"`
 	RetryInterval      float64  `json:"retry_interval"`

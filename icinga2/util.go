@@ -8,7 +8,13 @@ import (
 func (s Service) MarshalJSON() ([]byte, error) {
 	// Prevent json.Marshal() recursion
 	type service Service
-	serviceAsJson, err := json.Marshal(service(s))
+
+	svc := service(s)
+	// Clear top-level Vars field, so it's not added to the marshalled JSON. We marshal all service variables into individual top-level `vars.<variable name>` fields below.
+
+	svc.Vars = Vars{}
+
+	serviceAsJson, err := json.Marshal(svc)
 	if err != nil {
 		return nil, err
 	}
